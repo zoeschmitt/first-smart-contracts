@@ -36,10 +36,10 @@ bytecode = compiled_sol["contracts"]["SimpleStorage.sol"]["SimpleStorage"]["evm"
 abi = compiled_sol["contracts"]["SimpleStorage.sol"]["SimpleStorage"]["abi"]
 
 # for connecting to ganache
-w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:7545"))
-chain_id = 1337
-my_address = "0xd0f62fe3BB86242BEB73722003901487254F2FCe"
-private_key = os.getenv("SOL_PRIVATE_KEY")
+w3 = Web3(Web3.HTTPProvider(os.getenv("NET_URL")))
+chain_id = 4
+my_address = os.getenv("PUBLIC_KEY")
+private_key = os.getenv("PRIVATE_KEY")
 
 # create the contract in python
 SimpleStorage = w3.eth.contract(abi=abi, bytecode=bytecode)
@@ -50,6 +50,7 @@ nonce = w3.eth.getTransactionCount(my_address)
 # 1. Build a transaction
 # 2. Sign a transaction
 # 3. Send a transaction
+print("Deploying smart contract...")
 transaction = SimpleStorage.constructor().buildTransaction(
     {
         "gasPrice": w3.eth.gas_price,
@@ -63,6 +64,7 @@ tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
 # wait for transaction to finish
 tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+print("Deployed...")
 
 # work with the contract (always need contract address and abi)
 # 2 ways: Call - simulate making the call and getting a return value,
@@ -73,6 +75,7 @@ simple_storage = w3.eth.contract(address=tx_receipt.contractAddress, abi=abi)
 print(simple_storage.functions.retrieve().call())
 
 # add fav num
+print("Storing number...")
 store_transaction = simple_storage.functions.store(15).buildTransaction(
     {
         "gasPrice": w3.eth.gas_price,
